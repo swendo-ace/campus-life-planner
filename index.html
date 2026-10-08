@@ -104,3 +104,64 @@
       </figure>
     </section>
 
+    <!-- 3. RECORDS -->
+    <section id="records" aria-labelledby="records-heading">
+      <h2 id="records-heading" tabindex="-1">Records</h2>
+
+      <form id="records-controls" role="search" aria-label="Filter records">
+        <label for="record-search">Search</label>
+        <input type="search" id="record-search">
+
+        <label for="record-sort">Sort by</label>
+        <select id="record-sort">
+          <option value="due">Due date</option>
+          <option value="title">Title</option>
+          <option value="duration">Duration</option>
+        </select>
+
+        <label for="record-filter">Course</label>
+        <select id="record-filter">
+          <option value="">All courses</option>
+        </select>
+      </form>
+
+      <table id="records-table">
+        <caption>Your records</caption>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort="none"><button type="button">Title</button></th>
+            <th scope="col">Due</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Walk time</th>
+            <th scope="col">Course</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="records-body"></tbody>
+      </table>
+      <p id="records-empty" hidden>No records yet. Add one below.</p>
+
+      <template id="record-row-template">
+        <tr>
+          <th scope="row" data-label="Title"></th>
+          <td data-label="Due"></td>
+          <td data-label="Duration"></td>
+          <td data-label="Walk time"></td>
+          <td data-label="Course"></td>
+          <td data-label="Actions">
+            <button type="button" class="edit-btn">Edit<span class="visually-hidden"> record</span></button>
+            <button type="button" class="delete-btn">Delete<span class="visually-hidden"> record</span></button>
+          </td>
+        </tr>
+      </template>
+
+      <dialog id="confirm-dialog" aria-labelledby="confirm-heading">
+        <form method="dialog">
+          <h2 id="confirm-heading">Delete this record?</h2>
+          <p id="confirm-text"></p>
+          <button value="cancel">Cancel</button>
+          <button value="confirm">Delete</button>
+        </form>
+      </dialog>
+    </section>
+
