@@ -165,3 +165,120 @@
       </dialog>
     </section>
 
+    <!-- 4a. ADD/EDIT FORM -->
+    <section id="record-form-section" aria-labelledby="record-form-heading">
+      <h2 id="record-form-heading" tabindex="-1">Add a record</h2>
+
+      <div id="error-summary" tabindex="-1"></div>
+
+      <form id="record-form" novalidate aria-labelledby="record-form-heading">
+        <input type="hidden" id="record-id" name="id">
+
+        <fieldset>
+          <legend>What</legend>
+
+          <div class="field">
+            <label for="f-title">Title (required)</label>
+            <p id="f-title-hint" class="hint">Up to 80 characters.</p>
+            <input id="f-title" name="title" type="text" required maxlength="80"
+                   aria-describedby="f-title-hint f-title-error">
+            <p id="f-title-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-course">Course (required)</label>
+            <input id="f-course" name="course" type="text" required maxlength="60"
+                   aria-describedby="f-course-error">
+            <p id="f-course-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-type">Type</label>
+            <select id="f-type" name="type">
+              <option value="assignment">Assignment</option>
+              <option value="class">Class</option>
+              <option value="exam">Exam</option>
+              <option value="event">Event</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>When and how long</legend>
+
+          <div class="field">
+            <label for="f-due">Due date (required)</label>
+            <input id="f-due" name="due" type="date" required aria-describedby="f-due-error">
+            <p id="f-due-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-duration">Duration in minutes (required)</label>
+            <p id="f-duration-hint" class="hint">Whole number from 1 to 1440.</p>
+            <input id="f-duration" name="duration" type="number" min="1" max="1440" step="1" required
+                   aria-describedby="f-duration-hint f-duration-error">
+            <p id="f-duration-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="f-walk">Walk time in minutes</label>
+            <p id="f-walk-hint" class="hint">Leave at 0 if there is no walk.</p>
+            <input id="f-walk" name="walk" type="number" min="0" max="120" step="1" value="0"
+                   aria-describedby="f-walk-hint f-walk-error">
+            <p id="f-walk-error" class="error"></p>
+          </div>
+        </fieldset>
+
+        <fieldset aria-describedby="f-priority-error">
+          <legend>Priority (required)</legend>
+          <label><input type="radio" name="priority" value="low" required> Low</label>
+          <label><input type="radio" name="priority" value="medium"> Medium</label>
+          <label><input type="radio" name="priority" value="high"> High</label>
+          <p id="f-priority-error" class="error"></p>
+        </fieldset>
+
+        <button type="submit">Save record</button>
+        <button type="button" id="cancel-edit">Cancel</button>
+      </form>
+    </section>
+
+    <!-- 4b. SETTINGS -->
+    <section id="settings" aria-labelledby="settings-heading">
+      <h2 id="settings-heading">Settings</h2>
+      <form id="settings-form">
+        <fieldset>
+          <legend>Time units</legend>
+          <label><input type="radio" name="units" value="minutes" checked> Minutes</label>
+          <label><input type="radio" name="units" value="hours"> Hours</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Stress Mode</legend>
+          <label for="s-urgent-hours">Hours before due that counts as urgent</label>
+          <input id="s-urgent-hours" name="urgentHours" type="number" min="1" max="336" value="48">
+        </fieldset>
+
+        <fieldset>
+          <legend>Walk-time buffer</legend>
+          <label for="s-buffer">Extra minutes to add to every walk</label>
+          <input id="s-buffer" name="buffer" type="number" min="0" max="30" value="5">
+        </fieldset>
+
+        <fieldset>
+          <legend>Your data</legend>
+          <button type="button" id="export-btn">Export data</button>
+          <label for="import-file">Import data (JSON file)</label>
+          <input id="import-file" type="file" accept="application/json,.json">
+          <button type="button" id="clear-btn">Clear all data</button>
+        </fieldset>
+      </form>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Campus Life Planner, 2026.</p>
+    <a href="#main">Back to top</a>
+  </footer>
+</body>
+</html>
