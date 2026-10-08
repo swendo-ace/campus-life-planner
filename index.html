@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Life Planner</title>
+  <meta name="description" content="A planner for classes, deadlines and walk times.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- SKIP LINKS: first focusable elements on the page -->
+  <div class="skip-links">
+    <a href="#main">Skip to main content</a>
+    <a href="#records">Skip to records</a>
+    <a href="#record-form-heading">Skip to add or edit form</a>
+  </div>
+
+  <!-- LIVE REGIONS: always in the DOM, empty at load, visually hidden (never display:none) -->
+  <div id="status-region" role="status" class="visually-hidden"></div>
+  <div id="alert-region" role="alert" class="visually-hidden"></div>
+
+  <header class="site-header">
+    <h1>Campus Life Planner</h1>
+    <nav aria-label="Primary">
+      <button type="button" id="nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu</button>
+      <ul id="nav-list">
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#records">Records</a></li>
+        <li><a href="#record-form-section">Add record</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+    <!-- 1. ABOUT -->
+    <section id="about" aria-labelledby="about-heading">
+      <h2 id="about-heading">About this planner</h2>
+      <p>Campus Life Planner helps students track classes, deadlines and the time it takes to walk between buildings, so a busy week stays manageable.</p>
+      <h3 id="contact-heading">Contact the developer</h3>
+      <address aria-labelledby="contact-heading">
+        <ul>
+          <li><a href="https://github.com/swendo-ace">GitHub<span class="visually-hidden"> (external link)</span></a></li>
+          <li><a href="mailto:s.wendo@alustudent.com">Email</a></li>
+        </ul>
+      </address>
+    </section>
+
