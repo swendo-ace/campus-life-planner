@@ -50,3 +50,57 @@
       </address>
     </section>
 
+    <!-- 2. DASHBOARD -->
+    <section id="dashboard" aria-labelledby="dashboard-heading">
+      <h2 id="dashboard-heading">Dashboard</h2>
+
+      <article class="stat-tiles" aria-labelledby="stats-heading">
+        <h3 id="stats-heading">This week at a glance</h3>
+        <dl>
+          <div><dt>Open tasks</dt><dd id="stat-open">0</dd></div>
+          <div><dt>Minutes planned</dt><dd id="stat-minutes">0</dd></div>
+          <div><dt>Due in 48 hours</dt><dd id="stat-urgent">0</dd></div>
+        </dl>
+      </article>
+
+      <!-- Slot 1: Stress Mode -->
+      <article id="stress-widget" aria-labelledby="stress-heading">
+        <h3 id="stress-heading">Stress Mode</h3>
+        <p id="stress-hint">Shows only what is due soon and hides the rest.</p>
+        <label for="stress-toggle">
+          <input type="checkbox" id="stress-toggle" role="switch" aria-describedby="stress-hint">
+          Stress Mode
+        </label>
+        <div id="stress-view"></div>
+      </article>
+
+      <!-- Slot 2: Walk-Time Rush Indicator -->
+      <article id="rush-widget" aria-labelledby="rush-heading">
+        <h3 id="rush-heading">Walk-Time Rush Indicator</h3>
+        <div id="rush-visual" aria-hidden="true"></div>
+        <p id="rush-text">No upcoming classes yet.</p>
+      </article>
+
+      <!-- Slot 3: Burn-Down Chart -->
+      <h3 id="burndown-heading">Task Duration Burn-Down</h3>
+      <figure id="burndown">
+        <div id="burndown-canvas" role="img"
+             aria-labelledby="burndown-heading" aria-describedby="burndown-summary"></div>
+        <figcaption id="burndown-summary">Add records to see your remaining task minutes.</figcaption>
+        <details>
+          <summary>View chart data as a table</summary>
+          <table>
+            <caption>Remaining task minutes by day</caption>
+            <thead>
+              <tr>
+                <th scope="col">Day</th>
+                <th scope="col">Planned</th>
+                <th scope="col">Remaining</th>
+              </tr>
+            </thead>
+            <tbody id="burndown-data"></tbody>
+          </table>
+        </details>
+      </figure>
+    </section>
+
