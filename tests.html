@@ -32,6 +32,7 @@
 
   <script type="module">
     import * as V from "./scripts/validators.js";
+    import * as S from "./scripts/storage.js";
 
     // ---------- the tiny assertion kit ----------
     const results = [];
@@ -184,6 +185,198 @@
       const second = JSON.stringify(fn(sample));
       check("Guards", `${name} repeat calls match`, second, first);
     }
+
+    // ---------- Storage (in-memory fakes only, never the real localStorage) ----------
+    class MemoryStore {
+      constructor() { this.map = new Map(); }
+      getItem(key) { return this.map.has(key) ? this.map.get(key) : null; }
+      setItem(key, value) { this.map.set(key, String(value)); }
+      removeItem(key) { this.map.delete(key); }
+    }
+    class FullStore extends MemoryStore {
+      setItem() {
+        const error = new Error("full");
+        error.name = "QuotaExceededError";
+        throw error;
+      }
+    }
+
+    const sample = {
+      id: "plan_0001", title: "Study Study Group", duration: 90, tag: "Academics",
+      dueDate: "2026-10-15", walk: 8,
+      createdAt: "2026-10-01T10:00:00.000Z", updatedAt: "2026-10-01T10:00:00.000Z",
+    };
+    const withChange = (changes) => ({ ...sample, ...changes });
+    const listOf = (...items) => JSON.stringify(items);
+
+    // ---------- Seed file ----------
+    const seedResult = await S.loadSeed();
+    check("Seed file", "loads and passes strict validation", seedResult.ok, true);
+    const seed = seedResult.records;
+    check("Seed file", "has at least 12 records", seed.length >= 12, true);
+    check("Seed file", "ids are unique", new Set(seed.map((r) => r.id)).size, seed.length);
+    check("Seed file", "includes a leap-day due date", seed.some((r) => r.dueDate === "2028-02-29"), true);
+    check("Seed file", "includes a year-boundary due date", seed.some((r) => r.dueDate === "2027-01-01"), true);
+    check("Seed file", "includes a decimal duration", seed.some((r) => !Number.isInteger(r.duration)), true);
+    check("Seed file", "includes a repeated-word title",
+      seed.some((r) => V.validateTitle(r.title).warnings.length > 0), true);
+    check("Seed file", "includes a title with a time token",
+      seed.some((r) => V.findTimeToken(r.title) !== null), true);
+    check("Seed file", "includes a title with regex special characters",
+      seed.some((r) => /[()[\]+?]/.test(r.title)), true);
+    check("Seed file", "includes a title with markup characters",
+      seed.some((r) => r.title.includes("<b>")), true);
+
+    // ---------- Strict import ----------
+    for (const [label, text] of [
+      ["text that is not JSON", "not json"],
+      ["an object with no version", "{}"],
+      ["a bare number", "42"],
+      ["null", "null"],
+      ["a non-object record", "[1]"],
+      ["an unknown field", listOf(withChange({ admin: true }))],
+      ["a bad id", listOf(withChange({ id: "plan_1" }))],
+      ["a bad due date", listOf(withChange({ dueDate: "2026-02-30" }))],
+      ["a bad tag", listOf(withChange({ tag: "Math101" }))],
+      ["a bad duration", listOf(withChange({ duration: "abc" }))],
+      ["a title with edge spaces", listOf(withChange({ title: " padded " }))],
+      ["a missing timestamp", listOf({ ...sample, createdAt: undefined })],
+      ["updatedAt before createdAt", listOf(withChange({ updatedAt: "2026-09-01T10:00:00.000Z" }))],
+      ["a duplicate id", listOf(sample, sample)],
+      ["an unsupported envelope version", JSON.stringify({ version: 2, records: [sample] })],
+      ["an unknown envelope field", JSON.stringify({ version: 1, records: [sample], extra: 1 })],
+      ["more than the record limit", JSON.stringify(Array(2001).fill(sample))],
+      ["a file over the size limit", "[" + " ".repeat(1_000_001) + "]"],
+    ]) {
+      check("Strict import", `rejects ${label}`, S.parseRecordList(text).ok, false);
+    }
+    const withoutWalk = Object.fromEntries(Object.entries(sample).filter(([key]) => key !== "walk"));
+    for (const [label, text] of [
+      ["an empty list", "[]"],
+      ["one valid record", listOf(sample)],
+      ["a duration written as text", listOf(withChange({ duration: "90" }))],
+      ["a record without walk time", listOf(withoutWalk)],
+      ["the export envelope", JSON.stringify({
+        app: "campus-life-planner", version: 1, exportedAt: "2026-10-13T08:00:00.000Z", records: [sample],
+      })],
+    ]) {
+      check("Strict import", `accepts ${label}`, S.parseRecordList(text).ok, true);
+    }
+    check("Strict import", "a missing walk time defaults to 0",
+      S.parseRecordList(listOf(withoutWalk)).records[0].walk, 0);
+    check("Strict import", "inner double spaces in a title are collapsed",
+      S.parseRecordList(listOf(withChange({ title: "Study   Study Group" }))).records[0].title, "Study Study Group");
+    check("Strict import", "problems say which record is wrong",
+      S.parseRecordList(listOf(sample, withChange({ id: "plan_0002", dueDate: "2026-02-30" })))
+        .problems[0].includes("Record 2"), true);
+    check("Strict import", "a __proto__ key is rejected as an unknown field",
+      S.parseRecordList('[{"__proto__":{"admin":true},"id":"plan_0001"}]').ok, false);
+    check("Strict import", "and Object.prototype stays clean", ({}).admin, undefined);
+
+    // ---------- Saving and loading ----------
+    const store = new MemoryStore();
+    check("Storage", "an empty store reports empty", S.loadRecords(store).status, "empty");
+    check("Storage", "saving works", S.saveRecords(seed, store).ok, true);
+    const reloaded = S.loadRecords(store);
+    check("Storage", "saved records load back as ok", reloaded.status, "ok");
+    check("Storage", "records survive a save and load unchanged", reloaded.records, seed);
+    check("Storage", "a full store reports failure instead of throwing", S.saveRecords(seed, new FullStore()).ok, false);
+    check("Storage", "and the message explains why", S.saveRecords(seed, new FullStore()).message.includes("full"), true);
+    check("Storage", "a missing store reports unavailable", S.loadRecords(null).status, "unavailable");
+    check("Storage", "saving to a missing store fails politely", S.saveRecords(seed, null).ok, false);
+
+    const brokenStore = new MemoryStore();
+    brokenStore.setItem(S.KEYS.records, "{oops");
+    check("Storage", "unreadable JSON reports corrupt", S.loadRecords(brokenStore).status, "corrupt");
+    check("Storage", "a corrupt save is copied to a backup key", brokenStore.getItem(S.KEYS.backup), "{oops");
+    const wrongShape = new MemoryStore();
+    wrongShape.setItem(S.KEYS.records, listOf(withChange({ dueDate: "2026-02-30" })));
+    check("Storage", "a record that fails validation reports corrupt", S.loadRecords(wrongShape).status, "corrupt");
+
+    // ---------- Start-up flow ----------
+    const bootStore = new MemoryStore();
+    check("Boot", "first run loads the seed", (await S.bootRecords(bootStore)).source, "seed");
+    check("Boot", "first run saves the seed", S.loadRecords(bootStore).status, "ok");
+    check("Boot", "second run reads from storage", (await S.bootRecords(bootStore)).source, "storage");
+    const bootBroken = new MemoryStore();
+    bootBroken.setItem(S.KEYS.records, "{oops");
+    const recovered = await S.bootRecords(bootBroken);
+    check("Boot", "corrupt data falls back to the seed", recovered.source, "seed");
+    check("Boot", "and says what happened", recovered.problems.length > 0, true);
+    check("Boot", "and keeps the broken text as a backup", bootBroken.getItem(S.KEYS.backup), "{oops");
+
+    // ---------- Ids and file names ----------
+    for (const [list, expected] of [
+      [[], "plan_0001"],
+      [[{ id: "plan_0009" }], "plan_0010"],
+      [[{ id: "plan_0002" }, { id: "plan_0010" }], "plan_0011"],
+      [[{ id: "plan_9999" }], "plan_10000"],
+      [[{ id: "junk" }], "plan_0001"],
+    ]) {
+      check("Ids and names", `${show(list.map((r) => r.id))} next is ${expected}`, S.nextRecordId(list), expected);
+    }
+    check("Ids and names", "export file name uses the local date",
+      S.exportFileName("json", new Date(2026, 9, 5)), "campus-life-planner-2026-10-05.json");
+
+    // ---------- JSON export ----------
+    check("JSON export", "imports back unchanged",
+      S.parseRecordList(S.exportJSON(seed, new Date("2026-10-13T08:00:00.000Z"))).records, seed);
+    check("JSON export", "is an envelope with a version", JSON.parse(S.exportJSON(seed)).version, 1);
+
+    // ---------- CSV export ----------
+    for (const [input, expected] of [
+      ["plain", "plain"], ["a,b", '"a,b"'], ['say "hi"', '"say ""hi"""'],
+      ["line1\nline2", '"line1\nline2"'], ["=SUM(A1)", "'=SUM(A1)"],
+      ["+1 call", "'+1 call"], ["-5 degrees", "'-5 degrees"], ["@home", "'@home"],
+      [90, "90"], [7.5, "7.5"], [null, ""],
+    ]) {
+      check("CSV export", `${show(input)} becomes ${show(expected)}`, S.csvCell(input), expected);
+    }
+    const csv = S.exportCSV(seed);
+    const csvLines = csv.slice(1).split("\r\n");
+    check("CSV export", "starts with a byte order mark", csv.charCodeAt(0), 0xfeff);
+    check("CSV export", "header row matches the model", csvLines[0],
+      "id,title,duration,tag,dueDate,walk,createdAt,updatedAt");
+    check("CSV export", "has one line per record plus the header", csvLines.length - 1, seed.length + 1);
+    check("CSV export", "quotes a title that holds commas", csv.includes('"Project standup, room B2, 09:15"'), true);
+    check("CSV export", "doubles quotes inside a title", csv.includes('"Budget check: ""airtime"" and transport"'), true);
+
+    // ---------- Settings ----------
+    check("Settings", "empty input gives the defaults", S.validateSettings({}), S.DEFAULT_SETTINGS);
+    check("Settings", "null input gives the defaults", S.validateSettings(null), S.DEFAULT_SETTINGS);
+    for (const [input, field, expected] of [
+      [{ capMinutes: "1200" }, "capMinutes", 1200],
+      [{ capMinutes: -5 }, "capMinutes", 0],
+      [{ capMinutes: 99999 }, "capMinutes", 0],
+      [{ capMinutes: 12.5 }, "capMinutes", 0],
+      [{ theme: "neon" }, "theme", "system"],
+      [{ theme: "dark" }, "theme", "dark"],
+      [{ units: "hours" }, "units", "hours"],
+      [{ units: "days" }, "units", "minutes"],
+      [{ rate: 90 }, "rate", 90],
+      [{ rate: 0 }, "rate", 60],
+      [{ urgentHours: "72" }, "urgentHours", 72],
+      [{ buffer: 31 }, "buffer", 5],
+      [{ stressMode: "yes" }, "stressMode", false],
+      [{ stressMode: true }, "stressMode", true],
+    ]) {
+      check("Settings", `${show(input)} gives ${field} ${show(expected)}`, S.validateSettings(input)[field], expected);
+    }
+    const settingsStore = new MemoryStore();
+    S.saveSettings({ theme: "dark", capMinutes: 1200 }, settingsStore);
+    check("Settings", "survive a save and load", S.loadSettings(settingsStore).capMinutes, 1200);
+    settingsStore.setItem(S.KEYS.settings, "{oops");
+    check("Settings", "corrupt saved settings fall back to defaults", S.loadSettings(settingsStore), S.DEFAULT_SETTINGS);
+
+    // ---------- Clear all ----------
+    const clearStore = new MemoryStore();
+    S.saveRecords(seed, clearStore);
+    S.saveSettings({ theme: "dark" }, clearStore);
+    clearStore.setItem(S.KEYS.backup, "old text");
+    S.clearAllData(clearStore);
+    check("Clear all", "removes records", clearStore.getItem(S.KEYS.records), null);
+    check("Clear all", "removes settings", clearStore.getItem(S.KEYS.settings), null);
+    check("Clear all", "removes the backup", clearStore.getItem(S.KEYS.backup), null);
 
     // ---------- Rendering (textContent only, so toxic inputs stay inert text) ----------
     const make = (tag, text) => {

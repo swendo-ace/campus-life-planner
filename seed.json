@@ -1,0 +1,162 @@
+[
+  {
+    "id": "plan_0001",
+    "title": "Study Study Group",
+    "duration": 90,
+    "tag": "Academics",
+    "dueDate": "2026-10-15",
+    "walk": 8,
+    "createdAt": "2026-10-01T10:00:00.000Z",
+    "updatedAt": "2026-10-01T10:00:00.000Z"
+  },
+  {
+    "id": "plan_0002",
+    "title": "Lab report due 14:30",
+    "duration": 120,
+    "tag": "Lab work",
+    "dueDate": "2026-10-14",
+    "walk": 12,
+    "createdAt": "2026-10-02T08:15:00.000Z",
+    "updatedAt": "2026-10-09T17:40:00.000Z"
+  },
+  {
+    "id": "plan_0003",
+    "title": "Read chapter 4 of the the textbook",
+    "duration": 45,
+    "tag": "Academics",
+    "dueDate": "2026-10-16",
+    "walk": 0,
+    "createdAt": "2026-10-03T19:00:00.000Z",
+    "updatedAt": "2026-10-03T19:00:00.000Z"
+  },
+  {
+    "id": "plan_0004",
+    "title": "Calculus midterm review",
+    "duration": 150,
+    "tag": "Academics",
+    "dueDate": "2026-10-13",
+    "walk": 5,
+    "createdAt": "2026-10-04T09:30:00.000Z",
+    "updatedAt": "2026-10-12T21:05:00.000Z"
+  },
+  {
+    "id": "plan_0005",
+    "title": "Project standup, room B2, 09:15",
+    "duration": 15,
+    "tag": "Group-work",
+    "dueDate": "2026-10-14",
+    "walk": 10,
+    "createdAt": "2026-10-05T07:45:00.000Z",
+    "updatedAt": "2026-10-05T07:45:00.000Z"
+  },
+  {
+    "id": "plan_0006",
+    "title": "Draft essay (v2) [outline] + sources?",
+    "duration": 75,
+    "tag": "Writing",
+    "dueDate": "2026-10-17",
+    "walk": 0,
+    "createdAt": "2026-10-05T12:00:00.000Z",
+    "updatedAt": "2026-10-10T11:20:00.000Z"
+  },
+  {
+    "id": "plan_0007",
+    "title": "Fix <b>bold</b> tag in portfolio",
+    "duration": 60,
+    "tag": "Side projects",
+    "dueDate": "2026-10-18",
+    "walk": 0,
+    "createdAt": "2026-10-06T16:10:00.000Z",
+    "updatedAt": "2026-10-06T16:10:00.000Z"
+  },
+  {
+    "id": "plan_0008",
+    "title": "Leap day planning: 2028 hackathon",
+    "duration": 30,
+    "tag": "Career",
+    "dueDate": "2028-02-29",
+    "walk": 0,
+    "createdAt": "2026-10-06T18:00:00.000Z",
+    "updatedAt": "2026-10-06T18:00:00.000Z"
+  },
+  {
+    "id": "plan_0009",
+    "title": "Year-end scholarship paperwork",
+    "duration": 45,
+    "tag": "Admin",
+    "dueDate": "2026-12-31",
+    "walk": 10,
+    "createdAt": "2026-10-07T10:30:00.000Z",
+    "updatedAt": "2026-10-07T10:30:00.000Z"
+  },
+  {
+    "id": "plan_0010",
+    "title": "New year goals review",
+    "duration": 20,
+    "tag": "Self-care",
+    "dueDate": "2027-01-01",
+    "walk": 0,
+    "createdAt": "2026-10-07T20:00:00.000Z",
+    "updatedAt": "2026-10-07T20:00:00.000Z"
+  },
+  {
+    "id": "plan_0011",
+    "title": "Morning gym at 06:30",
+    "duration": 75,
+    "tag": "Health",
+    "dueDate": "2026-10-15",
+    "walk": 6,
+    "createdAt": "2026-10-08T05:50:00.000Z",
+    "updatedAt": "2026-10-08T05:50:00.000Z"
+  },
+  {
+    "id": "plan_0012",
+    "title": "Quick stretch between classes",
+    "duration": 7.5,
+    "tag": "Health",
+    "dueDate": "2026-10-13",
+    "walk": 0,
+    "createdAt": "2026-10-08T13:25:00.000Z",
+    "updatedAt": "2026-10-08T13:25:00.000Z"
+  },
+  {
+    "id": "plan_0013",
+    "title": "Meet Amélie about the project",
+    "duration": 40,
+    "tag": "Social",
+    "dueDate": "2026-10-16",
+    "walk": 9,
+    "createdAt": "2026-10-09T09:00:00.000Z",
+    "updatedAt": "2026-10-09T09:00:00.000Z"
+  },
+  {
+    "id": "plan_0014",
+    "title": "Budget check: \"airtime\" and transport",
+    "duration": 25,
+    "tag": "Finance",
+    "dueDate": "2026-10-19",
+    "walk": 0,
+    "createdAt": "2026-10-09T15:15:00.000Z",
+    "updatedAt": "2026-10-09T15:15:00.000Z"
+  },
+  {
+    "id": "plan_0015",
+    "title": "Overdue: return library books",
+    "duration": 20,
+    "tag": "Admin",
+    "dueDate": "2026-10-09",
+    "walk": 14,
+    "createdAt": "2026-10-02T11:00:00.000Z",
+    "updatedAt": "2026-10-02T11:00:00.000Z"
+  },
+  {
+    "id": "plan_0016",
+    "title": "Prepare the full literature review section for the sustainability seminar paper",
+    "duration": 180,
+    "tag": "Academics",
+    "dueDate": "2026-10-18",
+    "walk": 0,
+    "createdAt": "2026-10-10T08:00:00.000Z",
+    "updatedAt": "2026-10-10T08:00:00.000Z"
+  }
+]
