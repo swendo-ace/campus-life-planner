@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Running tests</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 1rem/1.5 system-ui, sans-serif; margin: 0 auto; max-width: 64rem; padding: 1rem; }
+    .skip { position: absolute; left: -999px; }
+    .skip:focus { left: 1rem; top: 1rem; background: Canvas; padding: .5rem; }
+    h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+    #summary { font-weight: 700; padding: .5rem .75rem; border-left: .4rem solid GrayText; }
+    #summary.all-pass { border-color: #1a7f37; }
+    #summary.has-fail { border-color: #c62828; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
+    th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid GrayText; vertical-align: top; overflow-wrap: anywhere; }
+    td.verdict { font-weight: 700; white-space: nowrap; }
+    tr.fail td { background: color-mix(in srgb, #c62828 18%, Canvas); }
+    code { font-family: ui-monospace, monospace; }
+    :focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#results">Skip to results</a>
+  <main>
+    <h1>Campus Life Planner: test runner</h1>
+    <p id="summary" role="status">Running checks...</p>
+    <p><label><input type="checkbox" id="only-failures"> Show failures only</label></p>
+    <div id="results"></div>
+  </main>
+
+  <script type="module">
+    import * as V from "./scripts/validators.js";
+
+    // ---------- the tiny assertion kit ----------
+    const results = [];
+
+    // Printable version of any input. JSON.stringify makes tabs, newlines and
+    // stray spaces visible, which is the whole point when testing whitespace.
+    function show(value) {
+      if (typeof value === "string" && value.length > 40) {
+        return JSON.stringify(value.slice(0, 37) + "...") + ` (${value.length} chars)`;
+      }
+      return String(JSON.stringify(value));
+    }
+
+    function check(suite, label, actual, expected) {
+      const pass = JSON.stringify(actual) === JSON.stringify(expected);
+      results.push({ suite, label, pass, actual, expected });
+    }
+
+    // A validator that throws must show up as a failed check, not stop the page.
+    function run(fn, input) {
+      try {
+        return fn(input);
+      } catch (error) {
+        return { ok: "threw: " + error.message, value: "threw: " + error.message };
+      }
+    }
+
+    const accepts = (suite, fn, inputs) =>
+      inputs.forEach((i) => check(suite, `accepts ${show(i)}`, run(fn, i).ok, true));
+    const rejects = (suite, fn, inputs) =>
+      inputs.forEach((i) => check(suite, `rejects ${show(i)}`, run(fn, i).ok, false));
+    const converts = (suite, fn, pairs) =>
+      pairs.forEach(([i, out]) => check(suite, `${show(i)} becomes ${show(out)}`, run(fn, i).value, out));
+
+    // ---------- Title ----------
+    accepts("Title", V.validateTitle, [
+      "Read chapter 4", "A", "x".repeat(80), "Study Study Group",
+      "Lab report due 14:30", "Review 3 notes!",
+    ]);
+    rejects("Title", V.validateTitle, [
+      "", "   ", " leading", "trailing ", "\tTabbed", "end\n", "Study\u00A0",
+      "x".repeat(81), "!!!", "...", null, 42,
+    ]);
+    converts("Title", V.validateTitle, [
+      ["Read   the    book", "Read the book"],
+      ["a\t\tb", "a b"],
+      ["Mon  14:30  lab", "Mon 14:30 lab"],
+    ]);
+
+    // ---------- Title warnings (advanced rule 1: back-reference) ----------
+    for (const [text, count] of [
+      ["the the plan", 1], ["The the plan", 1], ["Study  Study group", 1],
+      ["had had enough", 1], ["the then plan", 0], ["Read the book", 0],
+    ]) {
+      check("Duplicate-word warning", `${show(text)} gives ${count} warning(s)`,
+        V.validateTitle(text).warnings.length, count);
+    }
+    check("Duplicate-word warning", "a warning does not block saving",
+      V.validateTitle("the the plan").ok, true);
+
+    // ---------- Duration ----------
+    accepts("Duration", V.validateDuration, [
+      "1", "90", "7.5", "7.50", "10.25", "0.5", "10080", 90, 7.5,
+    ]);
+    rejects("Duration", V.validateDuration, [
+      "0", "007", "-5", "+5", "5.", ".5", "5.123", "1e3", " 5", "5 ", "",
+      "abc", "1,5", "9".repeat(30), "10081", 0.1 + 0.2, undefined, null,
+    ]);
+    converts("Duration", V.validateDuration, [["90", 90], ["7.50", 7.5], [90, 90]]);
+
+    // ---------- Walk time ----------
+    accepts("Walk time", V.validateWalk, ["0", "5", "120", "", 15, 0, undefined, null]);
+    rejects("Walk time", V.validateWalk, ["-1", "121", "1.5", "abc", "05", "1e2", " 5", 130, -3]);
+    converts("Walk time", V.validateWalk, [["", 0], ["15", 15], [undefined, 0]]);
+
+    // ---------- Due date ----------
+    accepts("Due date", V.validateDate, [
+      "2026-10-08", "2024-02-29", "2000-02-29", "2000-01-01", "2100-12-31",
+    ]);
+    rejects("Due date", V.validateDate, [
+      "2026-02-30", "2025-02-29", "2100-02-29", "2026-04-31", "2026-06-31",
+      "2026-13-01", "2026-00-10", "2026-10-00", "2026-10-32", "2026-10-8",
+      "10-08-2026", "2026/10/08", " 2026-10-08", "2026-10-08 ", "",
+      "1899-12-31", "2101-01-01", null,
+    ]);
+
+    // ---------- Tag ----------
+    accepts("Tag", V.validateTag, [
+      "Academics", "Group-work", "Lab work", "A", "Self study-time",
+    ]);
+    rejects("Tag", V.validateTag, [
+      "-Study", "Study-", "Lab  work", "Study - group", "Math101",
+      "<b>x</b>", "", "   ", "Caf\u00E9", "x".repeat(41), null,
+    ]);
+
+    // ---------- Time token (advanced rule 2) ----------
+    for (const [text, expected] of [
+      ["Lab at 14:30", { text: "14:30", hours: 14, minutes: 30 }],
+      ["Meet 09:05", { text: "09:05", hours: 9, minutes: 5 }],
+      ["Closing 23:59", { text: "23:59", hours: 23, minutes: 59 }],
+      ["Call at 99:99", null], ["Midnight 24:00", null], ["Bad 12:60", null],
+      ["x14:30", null], ["14:305", null], ["Seminar 9:30", null], ["no time here", null],
+    ]) {
+      check("Time token", `${show(text)} finds ${show(expected)}`, V.findTimeToken(text), expected);
+    }
+
+    // ---------- Record id and timestamp (used by strict import) ----------
+    for (const [value, expected] of [
+      ["plan_0001", true], ["plan_00001", true], ["plan_1", false],
+      ["PLAN_0001", false], ["plan_0001 ", false], [null, false],
+    ]) {
+      check("Record id", `${show(value)} is ${expected ? "valid" : "invalid"}`, V.isRecordId(value), expected);
+    }
+    for (const [value, expected] of [
+      ["2026-10-01T10:00:00.000Z", true], ["2026-10-01", false],
+      ["2026-10-01T10:00:00Z", false], ["yesterday", false], [undefined, false],
+    ]) {
+      check("Timestamp", `${show(value)} is ${expected ? "valid" : "invalid"}`, V.isIsoTimestamp(value), expected);
+    }
+
+    // ---------- Whole record ----------
+    const good = V.validateRecord({
+      title: "Study   Study Group", tag: "Academics", dueDate: "2026-10-15", duration: "90",
+    });
+    check("Whole record", "good input is ok", good.ok, true);
+    check("Whole record", "title is cleaned", good.record.title, "Study Study Group");
+    check("Whole record", "duration becomes a number", good.record.duration, 90);
+    check("Whole record", "missing walk time defaults to 0", good.record.walk, 0);
+    check("Whole record", "duplicate word shows up as a title warning", Boolean(good.warnings.title), true);
+
+    const broken = V.validateRecord({
+      title: " x", tag: "Math101", dueDate: "2026-02-30", duration: "abc", walk: "500",
+    });
+    check("Whole record", "bad input is not ok", broken.ok, false);
+    check("Whole record", "errors come back in form order",
+      Object.keys(broken.errors), ["title", "tag", "dueDate", "duration", "walk"]);
+    check("Whole record", "null input is rejected, not thrown", run(V.validateRecord, null).ok, false);
+
+    // ---------- Guards against shared-regex bugs ----------
+    check("Guards", "PATTERNS is frozen", Object.isFrozen(V.PATTERNS), true);
+    check("Guards", "no pattern uses the g or y flag",
+      Object.values(V.PATTERNS).filter((re) => re.global || re.sticky).length, 0);
+    for (const [name, fn, sample] of [
+      ["validateTitle", V.validateTitle, "the the plan"],
+      ["validateDuration", V.validateDuration, "90"],
+      ["validateDate", V.validateDate, "2026-10-15"],
+      ["validateTag", V.validateTag, "Group-work"],
+    ]) {
+      const first = JSON.stringify(fn(sample));
+      const second = JSON.stringify(fn(sample));
+      check("Guards", `${name} repeat calls match`, second, first);
+    }
+
+    // ---------- Rendering (textContent only, so toxic inputs stay inert text) ----------
+    const make = (tag, text) => {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+
+    function render() {
+      const mount = document.getElementById("results");
+      const onlyFailures = document.getElementById("only-failures").checked;
+      mount.replaceChildren();
+      const suites = [...new Set(results.map((r) => r.suite))];
+      suites.forEach((name, index) => {
+        const rows = results.filter((r) => r.suite === name && (!onlyFailures || !r.pass));
+        if (rows.length === 0) return;
+        const heading = make("h2", name);
+        heading.id = `suite-${index}`;
+        const table = make("table");
+        table.setAttribute("aria-labelledby", heading.id);
+        const head = make("tr");
+        ["Result", "Check", "Expected", "Got"].forEach((label) => {
+          const th = make("th", label);
+          th.setAttribute("scope", "col");
+          head.append(th);
+        });
+        const thead = make("thead");
+        thead.append(head);
+        const tbody = make("tbody");
+        rows.forEach((r) => {
+          const tr = make("tr");
+          if (!r.pass) tr.className = "fail";
+          const verdict = make("td", r.pass ? "PASS" : "FAIL");
+          verdict.className = "verdict";
+          tr.append(verdict, make("td", r.label), make("td", show(r.expected)), make("td", show(r.actual)));
+          tbody.append(tr);
+        });
+        table.append(thead, tbody);
+        mount.append(heading, table);
+      });
+    }
+
+    const failed = results.filter((r) => !r.pass).length;
+    const summary = document.getElementById("summary");
+    summary.textContent = failed === 0
+      ? `All ${results.length} checks passed.`
+      : `${failed} of ${results.length} checks failed. Failures are highlighted below.`;
+    summary.className = failed === 0 ? "all-pass" : "has-fail";
+    document.title = `${failed === 0 ? "PASS" : "FAIL"} (${results.length - failed}/${results.length}) Tests`;
+
+    document.getElementById("only-failures").addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>
