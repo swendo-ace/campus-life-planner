@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Campus Life Planner</title>
   <meta name="description" content="A planner for classes, deadlines and walk times.">
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="styles/main.css">
   <script type="module" src="scripts/app.js"></script>
 </head>
@@ -33,6 +34,7 @@
         <li><a href="#about">About</a></li>
       </ul>
     </nav>
+    <button type="button" id="shortcuts-btn" aria-haspopup="dialog">Keyboard shortcuts</button>
   </header>
 
   <main id="main" tabindex="-1">
@@ -63,6 +65,16 @@
         </dl>
       </article>
 
+      <!-- Weekly cap -->
+      <article id="cap-widget" aria-labelledby="cap-heading">
+        <h3 id="cap-heading">Weekly duration cap</h3>
+        <label for="cap-progress">Time planned this week against your cap</label>
+        <progress id="cap-progress" max="100" value="0">0%</progress>
+        <p id="cap-text">No cap set yet. Set one in Settings.</p>
+        <p id="cap-status" role="status" aria-live="polite"></p>
+        <p id="cap-alert" role="alert" aria-live="assertive"></p>
+      </article>
+
       <!-- Slot 1: Stress Mode -->
       <article id="stress-widget" aria-labelledby="stress-heading">
         <h3 id="stress-heading">Stress Mode</h3>
@@ -79,6 +91,40 @@
         <h3 id="rush-heading">Walk-Time Rush Indicator</h3>
         <div id="rush-visual" aria-hidden="true"></div>
         <p id="rush-text">No upcoming classes yet.</p>
+      </article>
+
+      <!-- Weekly trend -->
+      <h3 id="trend-heading">Weekly trend</h3>
+      <figure id="trend">
+        <div id="trend-chart" role="img"
+             aria-labelledby="trend-heading" aria-describedby="trend-summary"></div>
+        <figcaption id="trend-summary">Add records to see minutes planned per day this week.</figcaption>
+        <details>
+          <summary>View trend data as a table</summary>
+          <table>
+            <caption>Minutes planned per day this week</caption>
+            <thead>
+              <tr>
+                <th scope="col">Day</th>
+                <th scope="col">Minutes planned</th>
+              </tr>
+            </thead>
+            <tbody id="trend-data"></tbody>
+          </table>
+        </details>
+      </figure>
+
+      <!-- Focus timer -->
+      <article id="timer-widget" aria-labelledby="timer-heading">
+        <h3 id="timer-heading">Focus timer</h3>
+        <label for="timer-task">Task to focus on</label>
+        <select id="timer-task">
+          <option value="">Choose a task</option>
+        </select>
+        <p id="timer-display" role="timer" aria-label="Time remaining">00:00</p>
+        <button type="button" id="timer-start">Start</button>
+        <button type="button" id="timer-pause">Pause</button>
+        <button type="button" id="timer-reset">Reset</button>
       </article>
 
       <!-- Slot 3: Burn-Down Chart -->
@@ -110,7 +156,11 @@
 
       <form id="records-controls" role="search" aria-label="Filter records">
         <label for="record-search">Search</label>
-        <input type="search" id="record-search">
+        <input type="search" id="record-search" aria-describedby="search-hint search-error">
+
+        <p id="search-hint" class="hint">Regex allowed. Use @tag:Academics to search one tag.</p>
+        <p id="search-error" class="error"></p>
+        <label><input type="checkbox" role="switch" id="search-ignore-case" checked> Ignore case</label>
 
         <label for="record-sort">Sort by</label>
         <select id="record-sort">
@@ -234,9 +284,26 @@
       <h2 id="settings-heading">Settings</h2>
       <form id="settings-form">
         <fieldset>
+          <legend>Weekly duration cap</legend>
+          <label for="s-cap">Cap in minutes per week</label>
+          <p id="s-cap-hint" class="hint">For example 1200 for 20 hours.</p>
+          <input id="s-cap" name="cap" type="number" min="0" max="10080" step="1"
+                 aria-describedby="s-cap-hint">
+        </fieldset>
+
+        <fieldset>
           <legend>Time units</legend>
           <label><input type="radio" name="units" value="minutes" checked> Minutes</label>
           <label><input type="radio" name="units" value="hours"> Hours</label>
+          <label for="s-rate">Minutes per 1 hour (custom rate)</label>
+          <input id="s-rate" name="rate" type="number" min="1" max="1440" step="1" value="60">
+        </fieldset>
+
+        <fieldset>
+          <legend>Unit calculator</legend>
+          <label for="calc-minutes">Minutes</label>
+          <input id="calc-minutes" type="number" min="0" step="any">
+          <p>Equals <output id="calc-result" for="calc-minutes s-rate">0</output> hours</p>
         </fieldset>
 
         <fieldset>
@@ -252,8 +319,16 @@
         </fieldset>
 
         <fieldset>
+          <legend>Theme</legend>
+          <label><input type="radio" name="theme" value="system" checked> Match my device</label>
+          <label><input type="radio" name="theme" value="light"> Light</label>
+          <label><input type="radio" name="theme" value="dark"> Dark</label>
+        </fieldset>
+
+        <fieldset>
           <legend>Your data</legend>
-          <button type="button" id="export-btn">Export data</button>
+          <button type="button" id="export-json-btn">Export JSON</button>
+          <button type="button" id="export-csv-btn">Export CSV</button>
           <label for="import-file">Import data (JSON file)</label>
           <input id="import-file" type="file" accept="application/json,.json">
           <button type="button" id="clear-btn">Clear all data</button>
@@ -267,5 +342,27 @@
     <p>Campus Life Planner, 2026.</p>
     <a href="#main">Back to top</a>
   </footer>
+  <dialog id="shortcuts-dialog" aria-labelledby="shortcuts-heading">
+    <h2 id="shortcuts-heading">Keyboard shortcuts</h2>
+    <table>
+      <caption class="visually-hidden">Available keyboard shortcuts</caption>
+      <thead>
+        <tr>
+          <th scope="col">Keys</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><kbd>Alt</kbd> + <kbd>N</kbd></td><td>Add a new record</td></tr>
+        <tr><td><kbd>Alt</kbd> + <kbd>S</kbd></td><td>Go to search</td></tr>
+        <tr><td><kbd>Alt</kbd> + <kbd>K</kbd></td><td>Open this shortcut list</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Close a dialog</td></tr>
+      </tbody>
+    </table>
+    <form method="dialog">
+      <button>Close</button>
+    </form>
+  </dialog>
+
 </body>
 </html>
