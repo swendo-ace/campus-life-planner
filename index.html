@@ -119,9 +119,9 @@
           <option value="duration">Duration</option>
         </select>
 
-        <label for="record-filter">Course</label>
+        <label for="record-filter">Tag</label>
         <select id="record-filter">
-          <option value="">All courses</option>
+          <option value="">All tags</option>
         </select>
       </form>
 
@@ -133,7 +133,7 @@
             <th scope="col">Due</th>
             <th scope="col">Duration</th>
             <th scope="col">Walk time</th>
-            <th scope="col">Course</th>
+            <th scope="col">Tag</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -147,7 +147,7 @@
           <td data-label="Due"></td>
           <td data-label="Duration"></td>
           <td data-label="Walk time"></td>
-          <td data-label="Course"></td>
+          <td data-label="Tag"></td>
           <td data-label="Actions">
             <button type="button" class="edit-btn">Edit<span class="visually-hidden"> record</span></button>
             <button type="button" class="delete-btn">Delete<span class="visually-hidden"> record</span></button>
@@ -179,27 +179,19 @@
 
           <div class="field">
             <label for="f-title">Title (required)</label>
-            <p id="f-title-hint" class="hint">Up to 80 characters.</p>
+            <p id="f-title-hint" class="hint">Up to 80 characters. You can include a time like 14:30.</p>
             <input id="f-title" name="title" type="text" required maxlength="80"
-                   aria-describedby="f-title-hint f-title-error">
+                   aria-describedby="f-title-hint f-title-warning f-title-error">
+            <p id="f-title-warning" class="warning"></p>
             <p id="f-title-error" class="error"></p>
           </div>
 
           <div class="field">
-            <label for="f-course">Course (required)</label>
-            <input id="f-course" name="course" type="text" required maxlength="60"
-                   aria-describedby="f-course-error">
-            <p id="f-course-error" class="error"></p>
-          </div>
-
-          <div class="field">
-            <label for="f-type">Type</label>
-            <select id="f-type" name="type">
-              <option value="assignment">Assignment</option>
-              <option value="class">Class</option>
-              <option value="exam">Exam</option>
-              <option value="event">Event</option>
-            </select>
+            <label for="f-tag">Tag (required)</label>
+            <p id="f-tag-hint" class="hint">Letters, spaces and hyphens only, for example Academics or Group-work.</p>
+            <input id="f-tag" name="tag" type="text" required maxlength="40"
+                   aria-describedby="f-tag-hint f-tag-error">
+            <p id="f-tag-error" class="error"></p>
           </div>
         </fieldset>
 
@@ -207,16 +199,19 @@
           <legend>When and how long</legend>
 
           <div class="field">
-            <label for="f-due">Due date (required)</label>
-            <input id="f-due" name="due" type="date" required aria-describedby="f-due-error">
-            <p id="f-due-error" class="error"></p>
+            <label for="f-dueDate">Due date (required)</label>
+            <p id="f-dueDate-hint" class="hint">Format YYYY-MM-DD, for example 2026-10-15.</p>
+            <input id="f-dueDate" name="dueDate" type="text" required inputmode="numeric"
+                   placeholder="YYYY-MM-DD" maxlength="10"
+                   aria-describedby="f-dueDate-hint f-dueDate-error">
+            <p id="f-dueDate-error" class="error"></p>
           </div>
 
           <div class="field">
             <label for="f-duration">Duration in minutes (required)</label>
-            <p id="f-duration-hint" class="hint">Whole number from 1 to 1440.</p>
-            <input id="f-duration" name="duration" type="number" min="1" max="1440" step="1" required
-                   aria-describedby="f-duration-hint f-duration-error">
+            <p id="f-duration-hint" class="hint">A whole number or up to 2 decimals, for example 90 or 7.5.</p>
+            <input id="f-duration" name="duration" type="text" required inputmode="decimal"
+                   maxlength="8" aria-describedby="f-duration-hint f-duration-error">
             <p id="f-duration-error" class="error"></p>
           </div>
 
@@ -227,14 +222,6 @@
                    aria-describedby="f-walk-hint f-walk-error">
             <p id="f-walk-error" class="error"></p>
           </div>
-        </fieldset>
-
-        <fieldset aria-describedby="f-priority-error">
-          <legend>Priority (required)</legend>
-          <label><input type="radio" name="priority" value="low" required> Low</label>
-          <label><input type="radio" name="priority" value="medium"> Medium</label>
-          <label><input type="radio" name="priority" value="high"> High</label>
-          <p id="f-priority-error" class="error"></p>
         </fieldset>
 
         <button type="submit">Save record</button>
