@@ -1,3 +1,4 @@
+import { setupExtras } from "./extras.js";
 import { createStore, stats, weekBreakdown, nextRush, rushText, tagsOf, sortRecords, filterByTag, overdueRecords, urgentRecords } from "./state.js";
 import {bootRecords, loadSettings, saveRecords, saveSettings } from "./storage.js";
 import { searchRecords } from "./search.js";
@@ -112,4 +113,5 @@ ui.fillForm();
 render();
 ui.announceCap(store.refreshCap().announcement);
 if (boot.problems.length) ui.say(boot.problems[0], true);
+setupExtras(store);
 setInterval(render, 60000);

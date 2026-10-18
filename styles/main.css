@@ -32,8 +32,8 @@ input[aria-invalid="true"]{border:2px solid var(--bad)}
 #dashboard>h2,#dashboard>h3{margin:.5rem 0 0}
 .stat-tiles dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.75rem;margin:0}
 .stat-tiles div{background:var(--bg);border-radius:.6rem;padding:.75rem}
-dt{color:var(--muted)}
-dd{margin:0;font-size:1.6rem;font-weight:700}
+.stat-tiles dt{color:var(--muted)}
+.stat-tiles dd{margin:0;font-size:1.6rem;font-weight:700}
 progress{width:100%;max-width:24rem;height:1rem;accent-color:var(--accent)}
 #cap-alert:not(:empty){color:var(--bad);font-weight:700}
 #stress-view:not(:empty){background:var(--bg);padding:.5rem;border-radius:.4rem}
@@ -53,6 +53,9 @@ footer{border-top:1px solid var(--line);display:flex;justify-content:space-betwe
 @media (min-width:768px){#dashboard{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:1024px){#dashboard{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:767px){
+  #nav-toggle{display:inline-block}
+  #nav-list{display:none;flex-direction:column;width:100%}
+  #nav-list.open{display:flex}
   #records-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   #records-table,#records-table tbody,#records-table tr,#records-table th,#records-table td{display:block}
   #records-table tr{background:var(--card);border:1px solid var(--line);border-radius:.8rem;padding:.5rem;margin-bottom:.75rem}
@@ -61,3 +64,10 @@ footer{border-top:1px solid var(--line);display:flex;justify-content:space-betwe
   #records-table td::before{content:attr(data-label) ": ";font-weight:600;color:var(--muted)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (min-width:768px){
+    #records-table th:first-child{width:30%}
+    #records-table td:nth-child(2),#records-table td:last-child{white-space:nowrap}
+    #records-table thead th{color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+    #records-table td button{padding:.3rem .7rem;font-size:.9rem}
+    #records-table tbody tr:hover{background:var(--card)}
+}
