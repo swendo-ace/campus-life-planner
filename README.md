@@ -128,5 +128,8 @@ Open `tests.html` through the same local server. It runs the validators, regex r
 ## AI use statement
 
 I used Claude (an AI assistant) for planning, explaining concepts, reviewing and debugging. I also used AI to help me write a concise and detailed README. Much (90%) of the code was written by me, and AI helped fix the typing errors and bugs I found. I tested the result in the browser and on the live site. I am including this note so my use of AI is clear and honest.
+Below is a screenshot of my AI usage report from CodePause: 
+<img width="1920" height="1020" alt="Screenshot 2026-10-19 111356" src="https://github.com/user-attachments/assets/3ed1444c-15fb-4714-b275-0b5cb23fdb51" />
+
 
 Demo video: https://drive.google.com/file/d/1tA4b1p7-YncUwYB3aZeCoIvkXIpsmK3x/view?usp=drivesdk
